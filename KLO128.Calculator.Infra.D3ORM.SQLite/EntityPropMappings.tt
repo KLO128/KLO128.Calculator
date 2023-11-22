@@ -1,0 +1,415 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="netstandard" #>
+<#@ Assembly Name="EnvDTE.dll" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="EnvDTE" #>
+<#@ output extension=".cs" #>
+
+<#
+    PropKeyRegex = new Regex(@"[A-Za-z_][A-Za-z0-9_]+Id$");
+    PropIdFormat = "{0}Id";
+    DbIdFormat = "{0}Id";
+    NameSpaceStr = "KLO128.Calculator.Infra.D3ORM.SQLite";
+    EntitiesNameSpace = "KLO128.Calculator.Domain.Models.Entities";
+    var sourceProjectFile = Host.ResolvePath("../KLO128.Calculator.Domain/IQueryContainer.cs"); //any root file
+
+	var dte = (EnvDTE.DTE)((IServiceProvider)Host).GetService(typeof(EnvDTE.DTE));
+	var project = dte.Solution.FindProjectItem(sourceProjectFile).ContainingProject;
+	var codeElements = CodeElementsInProjectItems(project.ProjectItems);
+
+    var code = BuildFileText(codeElements, out List<string> messages);
+
+    WriteLine(code);
+#>
+
+<#+
+private Regex PropKeyRegex { get; set; }
+private string PropIdFormat { get; set; }
+private string DbIdFormat { get; set; }
+private string NameSpaceStr { get; set; }
+private string EntitiesNameSpace { get; set; }
+private string classFormat = @"
+//
+// generated file {3}
+//
+
+using KLO128.D3ORM.Common.Models;
+using {2};
+
+namespace {0}
+{{
+    public static class EntityPropMappings
+    {{
+        public static Dictionary<Type, EntityMapping> Dict {{ get; }} = new Dictionary<Type, EntityMapping>
+        {{
+{1}
+        }};
+    }}
+}}
+";
+
+private string entityFormat = @"
+            {{
+                typeof({0}),
+                new EntityMapping
+                {{
+                    Entity = ""{0}"",
+                    Table = ""{1}"",
+                    PrimaryKeyPropName = ""{2}"",
+                    ForeignKeys = new Dictionary<string, string> // Source Property ID -> Target Entity
+                    {{
+{3}
+                    }},
+                    Props = new Dictionary<string, PropertyMapping>
+                    {{
+{4}
+                    }}
+                }}
+            }}";
+
+private string foreignKeyFormat = @"
+                        {{ ""{0}"", ""{1}"" }}";
+
+private string propertyFormat = @"
+
+                        {{ 
+                            ""{0}"",
+                            new PropertyMapping
+                            {{
+                                Property = ""{0}"",
+                                DbColumn = ""{1}"",
+                                IsPrimaryKey = {2},
+                                IsNullable = {3},
+                                IsEnumerable = {4},
+                                IsComplexType = {5},
+                                PropertyInfo = typeof({6}).GetProperty(nameof({6}.{0}))!
+                            }}
+                        }}";
+
+private string BuildFileText(IEnumerable<CodeElement> elements, out List<string> messages)
+{
+    messages = new List<string>();
+
+    var entityListSb = new StringBuilder();
+    var entityMapList = new List<EntityMappingContext>();
+
+    //
+    // fill props
+    //
+    foreach (var element in elements)
+    {
+        var elementKind = GetElementKind(element);
+
+        if (elementKind == null || elementKind != "class" || !element.FullName.Contains(".Models.Entities.") || element.Name == "EntitiesDbContext")
+        {
+            continue;
+        }
+
+        var toAdd = new EntityMappingContext
+        {
+            EntityName = element.Name,
+            PrimaryKeyPropName = string.Empty
+        };
+
+        foreach (CodeElement child in element.Children)
+        {
+            if (child.Kind != vsCMElement.vsCMElementProperty || child is not CodeProperty elProp)
+            {
+                continue;
+            }
+
+            var typeName = elProp.Type.AsFullName;
+            var typeKind = elProp.Type.CodeType.Kind;
+
+            var typeNameParts = typeName.Split('.');
+            var typeSb = new StringBuilder();
+            var i = 0;
+
+            for (; i < typeNameParts.Length - 1; i++)
+            {
+                var part = typeNameParts[i];
+
+                if (part.IndexOf('<') is int idx && idx != -1)
+                {
+                    typeSb.Append(part.Substring(0, idx + 1));
+                }
+            }
+
+            typeSb.Append(typeNameParts[i]);
+
+            var attrs = elProp.Attributes;
+            var attrsEnumerator = attrs.GetEnumerator();
+            var isPrimaryKey = string.Format(PropIdFormat, element.Name) == child.Name;
+
+            if (isPrimaryKey)
+            {
+                toAdd.PrimaryKeyPropName = child.Name;
+            }
+            else
+            {
+                while (attrsEnumerator.MoveNext())
+                {
+                    if (attrsEnumerator.Current is CodeElement tmp && tmp.Name == "Key")
+                    {
+                        toAdd.PrimaryKeyPropName = child.Name;
+                        isPrimaryKey = true;
+                    }
+                }
+            }
+
+            toAdd.Props.Add(child.Name, new PropertyMappingContext
+            {
+                PropertyName = child.Name,
+                PropertyTypeName = typeSb.ToString().TrimEnd('?'),
+                IsPrimaryKey = isPrimaryKey,
+                IsNullable = typeName.Contains(".Nullable<"),
+                IsEnumerable = typeName.Contains("Enumerable") || typeName.Contains("Collection") || typeName.Contains("List"),
+                IsComplexType = typeKind != vsCMElement.vsCMElementStruct && !typeName.Contains("String") && !typeName.Contains(".Nullable"),
+                ParentEntityName = element.Name
+            });
+        }
+
+        entityMapList.Add(toAdd);
+    }
+
+    //
+    // fill DbNames and solve fks
+    //
+    var propIdPermanentPart = PropIdFormat.Replace("{0}", string.Empty);
+
+    foreach (var context in entityMapList)
+    {
+        foreach (var prop in context.Props)
+        {
+            if (!prop.Value.IsEnumerable && PropKeyRegex.IsMatch(prop.Value.PropertyName))
+            {
+                var startsWithIdPart = prop.Value.PropertyName.StartsWith(propIdPermanentPart);
+                var navPropName = startsWithIdPart ? prop.Value.PropertyName.Substring(propIdPermanentPart.Length) : prop.Value.PropertyName.Substring(0, prop.Value.PropertyName.Length - propIdPermanentPart.Length);
+
+                prop.Value.DbName = $"[{string.Format(DbIdFormat, GetDbName(navPropName).Trim('[', ']'))}]";
+
+                if (!prop.Value.IsPrimaryKey)
+                {// solve fks
+                    var found = false;
+
+                    foreach (var prop0 in context.Props)
+                    {
+                        if (prop0.Value.IsComplexType && !prop0.Value.IsEnumerable && prop.Value.PropertyName == string.Format(PropIdFormat, prop0.Value.PropertyName))
+                        {
+                            context.Fks.Add(prop.Value.PropertyName, string.Format(foreignKeyFormat, prop.Value.PropertyName, string.Concat(prop0.Value.PropertyTypeName, ", ->aggregated")));
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    // var collectionNameWeakRegex = new Regex(@$"^({context.EntityName})?({navPropName.Substring(0, navPropName.Length - 1 /*clears the last char, which can differ in plural*/)}|{context.EntityName.Substring(0, context.EntityName.Length - 1)}).(i|e)?s?$");
+                    var lastChars = navPropName.Substring(navPropName.Length - 2);
+                    var lastCharsPattern = lastChars == "us" ? "((uss?)|i)" : lastChars == "on" ? "((on)|a)" : lastChars == "is" ? "((es)|(is))s?" : lastChars.LastOrDefault() == 's' ? ".ss?" : lastChars.LastOrDefault() == 'z' ? ".zz?" : ".";
+                    var substrLength = navPropName.Length - (lastCharsPattern.Length == 1 ? 1 : 2);
+
+                    var collectionNameRegex = new Regex(@$"^({context.EntityName})?{navPropName.Substring(0, substrLength)}{lastCharsPattern}(i|e)?s?$");
+
+                    foreach (var context0 in entityMapList)
+                    {
+                        foreach (var prop0 in context0.Props)
+                        {
+                            if (prop0.Value.IsComplexType && prop0.Value.IsEnumerable && context0.EntityName == navPropName && (collectionNameRegex.IsMatch(prop0.Value.PropertyName) || /*collectionNameWeakRegex.IsMatch(prop0.Value.PropertyName) &&*/ context0 != context && context0.PrimaryKeyPropName == prop.Value.PropertyName))
+                            {
+                                if (found)
+                                {
+                                    context.Fks[prop.Value.PropertyName] = context.Fks[prop.Value.PropertyName].Replace("<", string.Empty).Replace(">", string.Empty).Replace("-", "<->");
+                                }
+                                else
+                                {
+                                    context.Fks.Add(prop.Value.PropertyName, string.Format(foreignKeyFormat, prop.Value.PropertyName, string.Concat(context0.EntityName, ", <-aggregated")));
+                                }
+
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        context.Fks.Add(prop.Value.PropertyName, string.Format(foreignKeyFormat, prop.Value.PropertyName, "n.a., (No Aggregation)"));
+                    }
+                }
+            }
+            else
+            {
+                prop.Value.DbName = GetDbName(prop.Value.PropertyName);
+            }
+        }
+    }
+
+    //
+    // print
+    //
+    foreach (var context in entityMapList)
+    {
+        if (entityListSb.Length != 0)
+        {
+            entityListSb.Append(',');
+        }
+
+        entityListSb.AppendFormat(entityFormat,
+            context.EntityName,
+            GetDbName(context.EntityName),
+            context.PrimaryKeyPropName,
+            string.Join(",", context.Fks.Values),
+            string.Join(",", context.Props.Select(prop => string.Format(propertyFormat,
+                prop.Value.PropertyName,
+                prop.Value.DbName,
+                prop.Value.IsPrimaryKey ? "true" : "false",
+                prop.Value.IsNullable ? "true" : "false",
+                prop.Value.IsEnumerable ? "true" : "false",
+                prop.Value.IsComplexType ? "true" : "false",
+                context.EntityName)).ToArray()));
+    }
+
+    return string.Format(classFormat, NameSpaceStr, entityListSb.ToString(), EntitiesNameSpace, DateTime.Now);
+}
+
+private string GetDbName(string name)
+{
+    return $"[{name}]";
+}
+
+private string GetElementKind(CodeElement element)
+{
+    return element.Kind == vsCMElement.vsCMElementInterface ? "interface" : element.Kind == vsCMElement.vsCMElementEnum ? "enum" : element.Kind == vsCMElement.vsCMElementStruct ? "struct" : element.Kind == vsCMElement.vsCMElementClass ? "class" : null;
+}
+
+private string LowerizeFirst(string str)
+{
+    return string.Concat(char.ToLower(str[0]), str.Substring(1));
+}
+
+private class EntityMappingContext
+{
+    public string EntityName { get; set; } = null!;
+
+    public string PrimaryKeyPropName { get; set; } = null!;
+
+    public Dictionary<string, PropertyMappingContext> Props { get; } = new Dictionary<string, PropertyMappingContext>();
+
+    public Dictionary<string, string> Fks { get; } = new Dictionary<string, string>();
+}
+
+private class PropertyMappingContext
+{
+    public string PropertyName { get; set; }
+
+    public string DbName {get; set; }
+
+    public string PropertyTypeName { get; set; }
+
+    public bool IsPrimaryKey { get; set; }
+
+    public bool IsNullable { get; set; }
+
+    public bool IsEnumerable { get; set; }
+
+    public bool IsComplexType { get; set; }
+
+    public string ParentEntityName { get; set; }
+}
+
+#>
+
+<#+
+
+// https://www.codeproject.com/Articles/39071/Declarative-Dependency-Property-Definition-with-T
+public IEnumerable<CodeElement> CodeElementsInProjectItems(ProjectItems projectItems)
+{
+    foreach (ProjectItem projectItem in projectItems)
+    {
+        foreach(CodeElement el in CodeElementsInProjectItem(projectItem))
+        {
+            yield return el;
+        }
+    }
+}
+ 
+public IEnumerable<CodeElement> CodeElementsInProjectItem(ProjectItem projectItem)
+{
+    FileCodeModel fileCodeModel = projectItem.FileCodeModel;
+ 
+    if (fileCodeModel != null)
+    {
+        foreach (CodeElement codeElement in fileCodeModel.CodeElements)
+        {
+            //WalkElements(codeElement, null);
+            foreach(CodeElement el in CodeElementDescendantsAndSelf(codeElement))
+            {
+                yield return el;
+            }
+        }
+    }
+ 
+    if (projectItem.ProjectItems != null)
+    {
+        foreach (ProjectItem childItem in projectItem.ProjectItems)
+        {
+            foreach (CodeElement el in CodeElementsInProjectItem(childItem))
+            {
+                yield return el;
+            }
+        }
+    }        
+} 
+ 
+public IEnumerable<CodeElement> CodeElementsDescendants(CodeElements codeElements)
+{
+    foreach(CodeElement element in codeElements)
+    {
+        foreach (CodeElement descendant in CodeElementDescendantsAndSelf(element))
+        {
+            yield return descendant;                
+        }
+    }
+}
+ 
+public IEnumerable<CodeElement> CodeElementDescendantsAndSelf(CodeElement codeElement)
+{
+    yield return codeElement;
+ 
+    CodeElements codeElements;
+ 
+    switch(codeElement.Kind)
+    {        
+ 
+        /* namespaces */
+        case vsCMElement.vsCMElementNamespace:
+        {
+            CodeNamespace codeNamespace = (CodeNamespace)codeElement;                                        
+            codeElements = codeNamespace.Members;
+            foreach(CodeElement descendant in CodeElementsDescendants(codeElements))
+            {
+                yield return descendant;                
+            }
+            break;
+        }
+ 
+        /* Process classes */
+        case vsCMElement.vsCMElementClass:
+        {            
+            CodeClass codeClass = (CodeClass)codeElement;            
+            codeElements = codeClass.Members;
+            foreach(CodeElement descendant in CodeElementsDescendants(codeElements))
+            {                
+                yield return descendant;                
+            }            
+            break;    
+        }        
+    }    
+}
+
+#>

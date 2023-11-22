@@ -1,0 +1,11 @@
+﻿<div>
+  <h1>{{sharedService.getTranslation('About')}}</h1>
+  <p class="lead">{{sharedService.getTranslation('msgAbout')}}</p>
+  <h3 *ngIf='loading'>{{sharedService.getTranslation('Loading')}}</h3>
+  <h3 *ngIf='!loading'>
+    {{sharedService.getTranslation('WebApiVersion')}}:&nbsp;
+    <span *ngIf='error'>{{sharedService.getTranslation('msgServerNotResponding')}}</span>
+    <span *ngIf='!error'>{{version}}</span>
+  </h3>
+</div>
+

@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="About" xml:space="preserve">
+    <value>O Aplikaci</value>
+  </data>
+  <data name="AdvancedOperators" xml:space="preserve">
+    <value>Rozšířené operátory</value>
+  </data>
+  <data name="ApplicationVersion" xml:space="preserve">
+    <value>Verze aplikace</value>
+  </data>
+  <data name="Calculator" xml:space="preserve">
+    <value>Kalkulačka</value>
+  </data>
+  <data name="Compute" xml:space="preserve">
+    <value>Spočítat</value>
+  </data>
+  <data name="decimalPoint" xml:space="preserve">
+    <value>,</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Chyba</value>
+  </data>
+  <data name="exp001" xml:space="preserve">
+    <value>Nepodařilo se najít požadovaný jazyk: {0}</value>
+  </data>
+  <data name="exp002" xml:space="preserve">
+    <value>Operace nemůže začínat operátorem '{0}'.</value>
+  </data>
+  <data name="exp003" xml:space="preserve">
+    <value>Příliš mnoho operandů.</value>
+  </data>
+  <data name="exp004" xml:space="preserve">
+    <value>Číslo je v nesprávném formátu: {0} ...na indexu: {1}</value>
+  </data>
+  <data name="exp005" xml:space="preserve">
+    <value>Nepodporovaná operace: '{0}' ...na indexu: {1}</value>
+  </data>
+  <data name="exp006" xml:space="preserve">
+    <value>Neplatný výraz: Příliš mnoho operandů v binární operaci. Očekával se operátor v blízkosti operandu: {0}... na indexu: {1}.</value>
+  </data>
+  <data name="exp007" xml:space="preserve">
+    <value>Neočekávaný symbol '{0}' na indexu: {1}</value>
+  </data>
+  <data name="exp008" xml:space="preserve">
+    <value>Chybějící operand v binární operaci... na indexu: {0}</value>
+  </data>
+  <data name="exp009" xml:space="preserve">
+    <value>Chybí uzavírací závorka... Začátek kontextu na indexu: {0}</value>
+  </data>
+  <data name="exp010" xml:space="preserve">
+    <value>Příliš mnoho operátorů na indexu {0}. Neočekávaný operátor: {1}</value>
+  </data>
+  <data name="exp011" xml:space="preserve">
+    <value>Chybí otevírací závorka... Kontext končí at indexu: {0}</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Historie</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Domů</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Načítání...</value>
+  </data>
+  <data name="More" xml:space="preserve">
+    <value>Více</value>
+  </data>
+  <data name="msgAbout" xml:space="preserve">
+    <value>Tato aplikace je schopná vypočítat jakýkoliv konstantní složený binární výraz s použitím podporovaných operátorů a závorek. Umožňuje také zkrášlit nebo normalizovat výraz a výsledek. Dále zobrazuje historii z cookies.</value>
+  </data>
+  <data name="msgExpressionRequired" xml:space="preserve">
+    <value>Pole výrazu je vyžadováno.</value>
+  </data>
+  <data name="msgResultAsInteger" xml:space="preserve">
+    <value>Výsledek zobrazit jako celé číslo</value>
+  </data>
+  <data name="msgServerNotResponding" xml:space="preserve">
+    <value>Server neodpovídá...</value>
+  </data>
+  <data name="msgSwitchToHttps" xml:space="preserve">
+    <value>Přejít na protokol https pro zachování historie...</value>
+  </data>
+  <data name="NoHistory" xml:space="preserve">
+    <value>Žádná historie</value>
+  </data>
+  <data name="Prettify" xml:space="preserve">
+    <value>Zkrášlit</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Obnovit</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Výsledek</value>
+  </data>
+  <data name="UseThousandSeparators" xml:space="preserve">
+    <value>Používat oddělovače tisíců</value>
+  </data>
+  <data name="WebApiVersion" xml:space="preserve">
+    <value>Verze Web Api</value>
+  </data>
+</root>

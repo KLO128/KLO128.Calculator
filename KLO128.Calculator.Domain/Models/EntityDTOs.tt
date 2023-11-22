@@ -1,0 +1,606 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ Assembly Name="EnvDTE.dll" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="EnvDTE" #>
+<#@ output extension=".txt" #>
+
+<#
+	var targetPath = Host.ResolvePath("../../KLO128.Calculator.Application.Contracts/DTOs/Entities/");
+    var jsonConfigPath = Host.ResolvePath("EntityDTOs.tt").Replace(".tt", ".json");
+    DefaultNameSpace = "KLO128.Calculator.Application.Contracts.DTOs.Entities";
+
+	var dte = (EnvDTE.DTE)((IServiceProvider)Host).GetService(typeof(EnvDTE.DTE));
+	var project = dte.Solution.FindProjectItem(Host.TemplateFile).ContainingProject;
+	var codeElements = CodeElementsInProjectItems(project.ProjectItems);
+
+    string? jsonConfig = null;
+    var messages = new List<string>();
+
+    if (File.Exists(jsonConfigPath))
+    {
+        jsonConfig = File.ReadAllText(jsonConfigPath);
+    }
+    else
+    {
+        messages.Add($"EntityDTOs.json not found => default config is used.");
+        messages.Add(string.Empty);
+    }
+
+    var codes = BuildFileTexts(codeElements, jsonConfig, messages);
+
+	foreach (var item in codes)
+	{
+		SaveOutput(string.Concat(targetPath, item.Key, ".cs"), item.Value);
+	}
+
+    foreach (var msg in messages)
+    {
+        WriteLine(msg);
+    }
+
+    if (genSuccess)
+    {
+        WriteLine("// DTOs generated successfully!");
+    }
+    else
+    {
+        WriteLine("// No Entity was generated... Uncomment: SaveOutput()");
+    }
+#>
+
+<#+
+public string DefaultNameSpace {get; set;}
+public static string[] extraNameSpaces = new string[0];
+public static bool genSuccess = false;
+
+
+private string classFormat = @"
+///
+/// generated file {3}
+///
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace {0}
+{{
+    public class {1}
+    {{
+{2}
+    }}
+}}
+";
+
+private string propertyFormat = @"
+        public {0} {1} {{ get; set; }}{2}";
+
+private string lazyPropertyFormat = @"
+        private {0}? {1};
+        public {0} {2}
+        {{
+            get
+            {{
+                if ({1} == null)
+                {{
+                    {1} = {3};
+                }}
+
+                return {1};
+            }}
+            set
+            {{
+                {1} = value;
+            }}
+        }}
+";
+
+private Dictionary<string, string> BuildFileTexts(IEnumerable<CodeElement> elements, string? jsonConfig, List<string> messages)
+{
+    var ret = new Dictionary<string, string>();
+    var namesForEntities = new List<string>();
+
+    var dtoConfigs = new Dictionary<string, List<DtoConfig>>();
+
+    foreach (var element in elements)
+    {
+        if (GetElementKind(element) != "class" || !element.FullName.Contains(".Entities."))
+        {
+            continue;
+        }
+
+        namesForEntities.Add(element.Name);
+    }
+
+    foreach (var name in namesForEntities)
+    {
+        //searching for entity
+
+        if (jsonConfig != null)
+        {
+            var matches = Regex.Matches(jsonConfig, @$"""Entity"": ""({name}|\*)"",(\r\n)?( )*""DtoName"": ""[A-Z-a-z_0-9\*]+"",(\r\n)?( )*""ExcludeProps"": \[");
+
+            if (matches.Count == 0)
+            {
+                throw new Exception($"D3Error-101 :: Missing DTO config for the entity {name} in EntityDTOs.json. Please describe the config for the entity or use asterix config (Entity: \"*\") to cover all not specfied entities.");
+            }
+
+            dtoConfigs.Add(name, new List<DtoConfig>());
+
+            foreach (Match match in matches)
+            {
+                var dtoName = match.Value.Split(new string[] { @"""DtoName"": """ }, StringSplitOptions.RemoveEmptyEntries).Last().Split('"').First();
+                var containsStar = false;
+
+                if (dtoName.Contains('*'))
+                {
+                    dtoName = dtoName.Replace("*", name);
+
+                    containsStar = true;
+                }
+
+                if (dtoConfigs[name].Any(x => x.DtoName == dtoName))
+                {
+                    if (!containsStar)
+                    {
+                        throw new Exception("D3Error-102 :: Star '*' declarations must be declared at the end or you have used an ambiguous dtoName.");
+                    }
+
+                    continue;
+                }
+
+                var excludesStr = jsonConfig.Substring(match.Index + match.Length, jsonConfig.IndexOf(']', match.Index) - (match.Index + match.Length));
+                var excludePropStrs = new List<string>();
+                var context = new StringBuilder();
+
+                for (int i = 0; i < excludesStr.Length; i++)
+                {
+                    var ch = excludesStr[i];
+
+                    if (ch == '"')
+                    {
+                        if (context.Length > 0)
+                        {
+                            excludePropStrs.Add(context.ToString().Replace("*", "(.)*"));
+                            context.Clear();
+                        }
+                    }
+                    else if (ch != ',' && ch != '[' && ch != ']')
+                    {
+                        context.Append(ch);
+                    }
+                }
+
+                dtoConfigs[name].Add(new DtoConfig
+                {
+                    EntityName = name,
+                    DtoName = dtoName,
+                    ExcludePropStrs = excludePropStrs
+                });
+            }
+        }
+        else
+        {
+            dtoConfigs.Add(name, new List<DtoConfig>
+            { 
+                new DtoConfig
+                {
+                    EntityName = name,
+                    DtoName = $"{name}DTO" ,
+                    ExcludePropStrs = new List<string>()
+                }
+            });
+        }
+    }
+
+    messages.Add(string.Join("\r\n", namesForEntities));
+
+    messages.Add("Props:");
+
+    foreach (var element in elements)
+    {
+        var elementKind = GetElementKind(element);
+
+        if (elementKind == null)
+        {
+            continue;
+        }
+
+        var elementName = element.Name;
+
+        if (!namesForEntities.Contains(elementName))
+        {
+            continue;
+        }
+
+        var dtoConfigList = dtoConfigs[elementName];
+
+        foreach (var dtoConfig in dtoConfigList)
+        {
+            var sb = new StringBuilder();
+
+            foreach (CodeElement child in element.Children)
+            {
+                var msg = $"step in:> {element.Name}.{child.Name}";
+
+                if (child.Kind != vsCMElement.vsCMElementProperty)
+                {
+                    msg += " -> Not a Property";
+                    continue;
+                }
+
+                var elProp = (child as CodeProperty);
+
+                if (elProp == null)
+                {
+                    msg += " -> Not a Property";
+                    continue;
+                }
+
+                var start = child.GetStartPoint();
+                var finish = child.GetEndPoint();
+                var required = start.CreateEditPoint().GetText(finish).Contains("= null!");
+
+                var prop = new KeyValuePair<string, string>(child.Name, GetTypeName(elProp.Type.AsString, namesForEntities));
+                var generic = prop.Value.Split(new char [] {'<', '>' }, StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1)?.Trim();
+
+                var skip = false;
+
+                foreach (var regex in dtoConfig.ExcludeProps)
+                {
+                    if (regex.IsMatch(prop.Key))
+                    {
+                        skip = true;
+                        break;
+                    }
+                }
+
+                if (skip)
+                {
+                    msg += $" -> Skipped for {dtoConfig.DtoName} (Hidden Property)";
+                    continue;
+                }
+
+                if ((elProp.Type.CodeType.Kind == vsCMElement.vsCMElementClass || elProp.Type.CodeType.Kind == vsCMElement.vsCMElementInterface) && !prop.Value.ToLower().EndsWith("string"))
+                {
+                    if (dtoConfigs.SelectMany(x => x.Value).FirstOrDefault(x => (x.EntityName == "*" || x.EntityName == (generic ?? prop.Value)) && !dtoConfig.ExcludePropStrs.Any(y => !x.ExcludePropStrs.Contains(y))) is DtoConfig childConfig)
+                    {
+                        if (generic != null)
+                        {
+                            generic = childConfig.DtoName;
+                        }
+
+                        prop = new KeyValuePair<string, string>(prop.Key, generic != null ? $"ICollection<{generic}>" : childConfig.DtoName);
+                    }
+                    else
+                    {
+                        msg += " -> Skipped (Not found any DTO with the same name and exclude props!)";
+                        continue;
+                    }
+                }
+
+                if (!required && !prop.Value.Contains('?') && !prop.Value.StartsWith("ICollection") && elProp.Type.CodeType.Kind == vsCMElement.vsCMElementClass)
+                {
+                    prop = new KeyValuePair<string, string>(prop.Key, prop.Value + '?');
+                }
+
+                var enumerator = elProp.Attributes.GetEnumerator();
+
+                foreach (CodeElement attr in elProp.Attributes)
+                {
+                    if (attr.Name == "JsonIgnore" || attr.Name == "JsonIgnoreAttribute")
+                    {
+                        sb.AppendLine().AppendLine("        [Newtonsoft.Json.JsonIgnore]");
+                        sb.AppendLine().Append("        [System.Text.Json.Serialization.JsonIgnore]");
+                    }
+                }
+
+                if (prop.Value.StartsWith("ICollection"))
+                {
+                    msg += " -> As Collection";
+                    sb.AppendFormat(lazyPropertyFormat, prop.Value, LowerizeFirst(prop.Key), prop.Key, $"new List<{generic}>()");
+                }
+                else
+                {
+                    sb.AppendFormat(propertyFormat, prop.Value, prop.Key, required ? " = null!;" : string.Empty);
+                }
+
+                messages.Add(msg);
+            }
+
+            ret.Add(dtoConfig.DtoName, string.Format(classFormat, DefaultNameSpace, dtoConfig.DtoName, sb.ToString(), DateTime.Now));
+        }
+    }
+
+    return ret;
+}
+
+private string GetElementKind(CodeElement element)
+{
+    return element.Kind == vsCMElement.vsCMElementInterface ? "interface" : element.Kind == vsCMElement.vsCMElementEnum ? "enum" : element.Kind == vsCMElement.vsCMElementStruct ? "struct" : element.Kind == vsCMElement.vsCMElementClass ? "class" : null;
+}
+
+private string LowerizeFirst(string str)
+{
+    return string.Concat(char.ToLower(str[0]), str.Substring(1));
+}
+
+private static void AppendType(StringBuilder sb, string typeStr)
+{
+    sb.Append(typeStr);
+}
+
+public static string GetTypeName(string type, List<string> namesForEntities, bool isCodeClassTypeStr = true, bool identifierOnly = false)
+{
+    var typeNameSeparator = '<';
+    var genericBracketLeft = '<';
+    var genericBracketRight = '>';
+    var typeNameGenericDistance = 1;
+
+    if (!isCodeClassTypeStr)
+    {
+        typeNameSeparator = '`';
+        genericBracketLeft = '[';
+        genericBracketRight = ']';
+        typeNameGenericDistance = 3;
+    }
+
+    var typeNameSb = new StringBuilder();
+
+    var index = type.IndexOf(typeNameSeparator);
+
+    var typeDef = index == -1 ? type : type.Substring(0, index);
+    var typeDefParts = typeDef.Split('.');
+    var nameSpaceSb = new StringBuilder();
+
+    nameSpaceSb.Append(typeDefParts[0]);
+    for (int i = 1; i < typeDefParts.Length - 1; i++)
+    {
+        nameSpaceSb.Append('.').Append(typeDefParts[i]);
+    }
+
+    var nameSpace = nameSpaceSb.ToString();
+    if (extraNameSpaces.Contains(nameSpace))
+    {
+        typeNameSb.Append(nameSpace).Append('.');
+    }
+
+    AppendType(typeNameSb, typeDefParts.Last());
+
+    if (identifierOnly)
+    {
+		if (index != -1)
+        {
+            var prefix = new StringBuilder();
+            var genericsStr = type.Substring(index + typeNameGenericDistance);
+
+            for (int i = 0; i < genericsStr.Length; i++)
+            {
+                var ch = genericsStr[i];
+                if (!char.IsLetterOrDigit(ch) && ch != '.')
+                {
+                    break;
+                }
+
+                prefix.Append(ch);
+            }
+
+            if (char.IsLower(typeNameSb[0]))
+            {
+                typeNameSb[0] = char.ToUpper(typeNameSb[0]);
+            }
+
+            if (char.IsLower(prefix[0]))
+            {
+                prefix[0] = char.ToUpper(prefix[0]);
+            }
+
+            typeNameSb.Insert(0, prefix.ToString().Split('.').Last());
+        }
+    }
+    else if (index != -1)
+    {
+        typeNameSb.Append("<");
+
+        var genericsStr = type.Substring(index + typeNameGenericDistance);
+
+        var generics = new List<string>();
+
+        var context = new StringBuilder();
+        var innerBrackets = 0;
+
+        for (int i = 0; i < genericsStr.Length; i++)
+        {
+            var ch = genericsStr[i];
+            if (ch == genericBracketLeft)
+            {
+                innerBrackets++;
+                context.Append('<');
+            }
+            else if (ch == genericBracketRight)
+            {
+                if (innerBrackets == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    innerBrackets--;
+                    context.Append('>');
+                }
+
+            }
+            else if (ch == ',' && innerBrackets == 0)
+            {
+                generics.Add(context.ToString());
+                context.Clear();
+            }
+            else
+            {
+                context.Append(ch);
+            }
+        }
+
+        if (context.Length > 0)
+        {
+            generics.Add(context.ToString());
+        }
+
+        AppendType(typeNameSb, GetTypeName(generics[0], namesForEntities));
+
+        for (int i = 1; i < generics.Count; i++)
+        {
+            typeNameSb.Append(",");
+            AppendType(typeNameSb, GetTypeName(generics[i], namesForEntities));
+        }
+
+        typeNameSb.Append(">");
+    }
+
+    return typeNameSb.ToString();
+}
+
+private class DtoConfig
+{
+    public string EntityName { get; set; } = null!;
+
+    public string DtoName { get; set; } = null!;
+
+    private List<string> excludePropStrs;
+
+    public List<string> ExcludePropStrs
+    {
+        get
+        {
+            if (excludePropStrs == null)
+            {
+                excludePropStrs = new List<string>();
+            }
+
+            return excludePropStrs;
+        }
+        set
+        {
+            excludePropStrs = value;
+            ExcludeProps = value.Select(x => new Regex(x)).ToList();
+        }
+    }
+
+    public List<Regex> ExcludeProps { get; private set; } = null!;
+}
+#>
+
+<#+
+
+private void SaveOutput(string outputFilePath, string text)
+{
+	using (var fs = new FileStream(outputFilePath, FileMode.OpenOrCreate))
+	{
+		fs.SetLength(0);
+		var bytes = Encoding.UTF8.GetBytes(text);
+		var awaiter = fs.WriteAsync(bytes, 0, bytes.Length);
+		awaiter.Wait();
+	}
+
+	this.GenerationEnvironment.Remove(0, this.GenerationEnvironment.Length);
+
+    genSuccess = true;
+}
+#>
+
+<#+
+
+// https://www.codeproject.com/Articles/39071/Declarative-Dependency-Property-Definition-with-T
+public IEnumerable<CodeElement> CodeElementsInProjectItems(ProjectItems projectItems)
+{
+    foreach (ProjectItem projectItem in projectItems)
+    {
+        foreach(CodeElement el in CodeElementsInProjectItem(projectItem))
+        {
+            yield return el;
+        }
+    }
+}
+ 
+public IEnumerable<CodeElement> CodeElementsInProjectItem(ProjectItem projectItem)
+{
+    FileCodeModel fileCodeModel = projectItem.FileCodeModel;
+ 
+    if (fileCodeModel != null)
+    {
+        foreach (CodeElement codeElement in fileCodeModel.CodeElements)
+        {
+            //WalkElements(codeElement, null);
+            foreach(CodeElement el in CodeElementDescendantsAndSelf(codeElement))
+            {
+                yield return el;
+            }
+        }
+    }
+ 
+    if (projectItem.ProjectItems != null)
+    {
+        foreach (ProjectItem childItem in projectItem.ProjectItems)
+        {
+            foreach (CodeElement el in CodeElementsInProjectItem(childItem))
+            {
+                yield return el;
+            }
+        }
+    }        
+} 
+ 
+public IEnumerable<CodeElement> CodeElementsDescendants(CodeElements codeElements)
+{
+    foreach(CodeElement element in codeElements)
+    {
+        foreach (CodeElement descendant in CodeElementDescendantsAndSelf(element))
+        {
+            yield return descendant;                
+        }
+    }
+}
+ 
+public IEnumerable<CodeElement> CodeElementDescendantsAndSelf(CodeElement codeElement)
+{
+    yield return codeElement;
+ 
+    CodeElements codeElements;
+ 
+    switch(codeElement.Kind)
+    {        
+ 
+        /* namespaces */
+        case vsCMElement.vsCMElementNamespace:
+        {
+            CodeNamespace codeNamespace = (CodeNamespace)codeElement;                                        
+            codeElements = codeNamespace.Members;
+            foreach(CodeElement descendant in CodeElementsDescendants(codeElements))
+            {
+                yield return descendant;                
+            }
+            break;
+        }
+ 
+        /* Process classes */
+        case vsCMElement.vsCMElementClass:
+        {            
+            CodeClass codeClass = (CodeClass)codeElement;            
+            codeElements = codeClass.Members;
+            foreach(CodeElement descendant in CodeElementsDescendants(codeElements))
+            {                
+                yield return descendant;                
+            }            
+            break;    
+        }        
+    }    
+}
+
+#>

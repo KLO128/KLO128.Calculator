@@ -1,0 +1,253 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ Assembly Name="EnvDTE.dll" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="EnvDTE" #>
+<#@ output extension=".txt" #>
+
+<#
+	var targetPath = Host.ResolvePath("../KLO128.Calculator.Infra.D3ORM/Repositories/");
+    var entitiesJsonPath = Host.ResolvePath("EntitiesFromEFCore.tt").Replace(".tt", ".json");
+    DefaultNameSpace = "KLO128.Calculator.Infra.D3ORM.Repositories";
+    IfaceReposNameSpace = "KLO128.Calculator.Domain.Repositories";
+    EntitiesNameSpace = "KLO128.Calculator.Domain.Models.Entities";
+    DatabaseContextNames = new string [] {"DatabaseContext"};
+
+	var dte = (EnvDTE.DTE)((IServiceProvider)Host).GetService(typeof(EnvDTE.DTE));
+	var project = dte.Solution.FindProjectItem(Host.TemplateFile).ContainingProject;
+	var codeElements = CodeElementsInProjectItems(project.ProjectItems);
+        var messages = new List<string>();
+
+    string? entitiesJson = null;
+
+    if (File.Exists(entitiesJsonPath))
+    {
+        entitiesJson = File.ReadAllText(entitiesJsonPath);
+    }
+    else
+    {
+        messages.Add($"EntitiesFromEFCore.json not found => all Repositories will be generated as Aggregate Root Repository!");
+        messages.Add(string.Empty);
+    }
+
+    var codes = BuildFileTexts(codeElements, entitiesJson, messages);
+
+	foreach (var item in codes)
+	{
+		SaveOutput(string.Concat(targetPath, item.Key, ".cs"), item.Value);
+	}
+
+    foreach (var msg in messages)
+    {
+        WriteLine(msg);
+    }
+
+    if (genSuccess)
+    {
+        WriteLine("// Repositories generated successfully!");
+    }
+    else
+    {
+        WriteLine("//No Entity was generated... Uncomment: SaveOutput()");
+    }
+#>
+
+<#+
+public string DefaultNameSpace { get; set; }
+public string IfaceReposNameSpace { get; set; }
+public string EntitiesNameSpace { get; set; }
+public string[] DatabaseContextNames { get; set; }
+public static string[] extraNameSpaces = new string[0];
+public static bool genSuccess = false;
+
+
+private string classFormat = @"
+///
+/// generated file {7}
+///
+
+using System;
+using System.Data;
+using KLO128.D3ORM.Common;
+using KLO128.D3ORM.Common.Impl;
+using {5};
+using {6};
+
+namespace {0}
+{{
+    public class {1} : {2}<{3}>, {4}
+    {{
+        public {1}(IDbConnection Connection, ID3Context D3Context) : base(Connection, D3Context)
+        {{
+        }}
+    }}
+}}
+";
+
+private Dictionary<string, string> BuildFileTexts(IEnumerable<CodeElement> elements, string? entitiesJson, List<string> messages)
+{
+    var ret = new Dictionary<string, string>();
+    var namesForEntities = new List<string>();
+
+    foreach (var element in elements)
+    {
+        if (GetElementKind(element) != "class" || !element.FullName.Contains(".Db.") || DatabaseContextNames.Contains(element.Name))
+        {
+            continue;
+        }
+
+        namesForEntities.Add(element.Name);
+    }
+
+    foreach (var element in elements)
+    {
+        var elementKind = GetElementKind(element);
+
+        if (elementKind == null)
+        {
+            continue;
+        }
+
+        var elementName = element.Name;
+        var repositoryName = string.Concat("D3", elementName, "Repository");
+        var interfaceName = string.Concat('I', elementName, "Repository");
+
+        if (!namesForEntities.Contains(elementName))
+        {
+            continue;
+        }
+
+        var baseType = entitiesJson == null || entitiesJson.Contains(string.Concat($"\r\n    \"Entity\": \"{elementName}\"")) ? "D3AggRootRepository" : "D3CommonRepository";
+
+        if (ret.ContainsKey(repositoryName))
+        {
+            // messages.Add("error: Duplicit Entity Name: " + repositoryName);
+            // return new Dictionary<string, string>();
+            continue;
+        }
+
+        ret.Add(repositoryName, string.Format(classFormat, DefaultNameSpace, repositoryName, baseType, elementName, interfaceName, EntitiesNameSpace, IfaceReposNameSpace, DateTime.Now));
+
+        messages.Add(string.Concat(elementName, " -> ", repositoryName, " : ", baseType, ", ", interfaceName));
+    }
+
+    return ret;
+}
+
+private string GetElementKind(CodeElement element)
+{
+    return element.Kind == vsCMElement.vsCMElementInterface ? "interface" : element.Kind == vsCMElement.vsCMElementEnum ? "enum" : element.Kind == vsCMElement.vsCMElementStruct ? "struct" : element.Kind == vsCMElement.vsCMElementClass ? "class" : null;
+}
+#>
+
+<#+
+
+private void SaveOutput(string outputFilePath, string text)
+{
+	using (var fs = new FileStream(outputFilePath, FileMode.OpenOrCreate))
+	{
+		fs.SetLength(0);
+		var bytes = Encoding.UTF8.GetBytes(text);
+		var awaiter = fs.WriteAsync(bytes, 0, bytes.Length);
+		awaiter.Wait();
+	}
+
+	this.GenerationEnvironment.Remove(0, this.GenerationEnvironment.Length);
+
+    genSuccess = true;
+}
+#>
+
+<#+
+
+// https://www.codeproject.com/Articles/39071/Declarative-Dependency-Property-Definition-with-T
+public IEnumerable<CodeElement> CodeElementsInProjectItems(ProjectItems projectItems)
+{
+    foreach (ProjectItem projectItem in projectItems)
+    {
+        foreach(CodeElement el in CodeElementsInProjectItem(projectItem))
+        {
+            yield return el;
+        }
+    }
+}
+ 
+public IEnumerable<CodeElement> CodeElementsInProjectItem(ProjectItem projectItem)
+{
+    FileCodeModel fileCodeModel = projectItem.FileCodeModel;
+ 
+    if (fileCodeModel != null)
+    {
+        foreach (CodeElement codeElement in fileCodeModel.CodeElements)
+        {
+            //WalkElements(codeElement, null);
+            foreach(CodeElement el in CodeElementDescendantsAndSelf(codeElement))
+            {
+                yield return el;
+            }
+        }
+    }
+ 
+    if (projectItem.ProjectItems != null)
+    {
+        foreach (ProjectItem childItem in projectItem.ProjectItems)
+        {
+            foreach (CodeElement el in CodeElementsInProjectItem(childItem))
+            {
+                yield return el;
+            }
+        }
+    }        
+} 
+ 
+public IEnumerable<CodeElement> CodeElementsDescendants(CodeElements codeElements)
+{
+    foreach(CodeElement element in codeElements)
+    {
+        foreach (CodeElement descendant in CodeElementDescendantsAndSelf(element))
+        {
+            yield return descendant;                
+        }
+    }
+}
+ 
+public IEnumerable<CodeElement> CodeElementDescendantsAndSelf(CodeElement codeElement)
+{
+    yield return codeElement;
+ 
+    CodeElements codeElements;
+ 
+    switch(codeElement.Kind)
+    {        
+ 
+        /* namespaces */
+        case vsCMElement.vsCMElementNamespace:
+        {
+            CodeNamespace codeNamespace = (CodeNamespace)codeElement;                                        
+            codeElements = codeNamespace.Members;
+            foreach(CodeElement descendant in CodeElementsDescendants(codeElements))
+            {
+                yield return descendant;                
+            }
+            break;
+        }
+ 
+        /* Process classes */
+        case vsCMElement.vsCMElementClass:
+        {            
+            CodeClass codeClass = (CodeClass)codeElement;            
+            codeElements = codeClass.Members;
+            foreach(CodeElement descendant in CodeElementsDescendants(codeElements))
+            {                
+                yield return descendant;                
+            }            
+            break;    
+        }        
+    }    
+}
+#>

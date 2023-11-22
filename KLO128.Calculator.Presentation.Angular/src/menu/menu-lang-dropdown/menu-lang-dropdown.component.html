@@ -1,0 +1,8 @@
+﻿<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle" href="#" id="langs" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{sharedService.currentLang}}</a>
+  <div class="dropdown-menu dropdown-menu-dark bg-navbar dropdown-menu-end" aria-labelledby="langs">
+    <ng-container *ngFor="let lang of sharedService.allLangs">
+      <a  class="dropdown-item" *ngIf='lang != sharedService.currentLang' [routerLink]='sharedService.getFullPath(lang)'>{{lang}}</a>
+    </ng-container>
+  </div>
+</li>

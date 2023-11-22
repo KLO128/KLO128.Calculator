@@ -1,0 +1,127 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34202.233
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "KLO128.Calculator.Presentation.Angular", "KLO128.Calculator.Presentation.Angular\KLO128.Calculator.Presentation.Angular.esproj", "{11CD3B4B-9141-4288-8368-4058BC078019}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Domain.Shared", "KLO128.Calculator.Domain.Shared\KLO128.Calculator.Domain.Shared.csproj", "{74AEE082-C9D7-44C0-9776-46695659A0CD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Domain", "KLO128.Calculator.Domain\KLO128.Calculator.Domain.csproj", "{6AC9DE20-4BBE-4D03-BCC7-E29FB4882132}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Infra.D3ORM", "KLO128.Calculator.Infra.D3ORM\KLO128.Calculator.Infra.D3ORM.csproj", "{18202A0F-467F-4B37-ABC1-5877B211E5CC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Infra.D3ORM.SQLite", "KLO128.Calculator.Infra.D3ORM.SQLite\KLO128.Calculator.Infra.D3ORM.SQLite.csproj", "{93CCFDA0-4B5F-4616-A028-12C2D35FE8DA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Application.Contracts", "KLO128.Calculator.Application.Contracts\KLO128.Calculator.Application.Contracts.csproj", "{B7466547-61B3-40F9-8F20-5C131E7415B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Application.Web", "KLO128.Calculator.Application.Web\KLO128.Calculator.Application.Web.csproj", "{776D7D16-E099-47F5-A71C-439B5AF28E47}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Presentation.WebApi", "KLO128.Calculator.Presentation.WebApi\KLO128.Calculator.Presentation.WebApi.csproj", "{2812EDD2-AB40-477B-9175-F8A2A77F69AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{59811D2B-2484-410D-9938-E3D09D7DF514}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\create.sql = Docs\create.sql
+		Docs\cs-CZ-Prettify.png = Docs\cs-CZ-Prettify.png
+		Docs\Database.sqlite = Docs\Database.sqlite
+		Docs\en-US-Prettify.png = Docs\en-US-Prettify.png
+		Docs\en-US-PrettifyBefore.png = Docs\en-US-PrettifyBefore.png
+		Docs\en-US-PrettifyBefore2.png = Docs\en-US-PrettifyBefore2.png
+		Docs\en-US.png = Docs\en-US.png
+		Docs\Error.png = Docs\Error.png
+		Docs\Grammar.txt = Docs\Grammar.txt
+		Docs\NoApi.png = Docs\NoApi.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8079F86E-B6A4-44EC-A590-A745CD579257}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		License.md = License.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9941FA78-8346-405C-BB41-E2DB09F51074}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Tests.UnitTests.Domain", "KLO128.Calculator.Tests.UnitTests.Domain\KLO128.Calculator.Tests.UnitTests.Domain.csproj", "{713A7C03-CE75-4134-ACE1-940D41228EEC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Tests.IntegrationTests.Domain", "KLO128.Calculator.Tests.IntegrationTests.Domain\KLO128.Calculator.Tests.IntegrationTests.Domain.csproj", "{1BBED20D-27E6-4C62-9290-9891DC2E78D5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KLO128.Calculator.Tests", "KLO128.Calculator.Tests\KLO128.Calculator.Tests.csproj", "{72696868-DF59-46F2-946A-6B3429805ED8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KLO128.Calculator.Infra.EFCore.SQLite", "KLO128.Calculator.Infra.EFCore.SQLite\KLO128.Calculator.Infra.EFCore.SQLite.csproj", "{F611F224-1F84-4E2E-B523-12070445E08B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KLO128.Calculator.Infra.EFCore.SQLite.Gen", "KLO128.Calculator.Infra.EFCore.SQLite.Gen\KLO128.Calculator.Infra.EFCore.SQLite.Gen.csproj", "{D006D673-EC33-4C2B-990E-49E39B1C160D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11CD3B4B-9141-4288-8368-4058BC078019}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11CD3B4B-9141-4288-8368-4058BC078019}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11CD3B4B-9141-4288-8368-4058BC078019}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{11CD3B4B-9141-4288-8368-4058BC078019}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11CD3B4B-9141-4288-8368-4058BC078019}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11CD3B4B-9141-4288-8368-4058BC078019}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{74AEE082-C9D7-44C0-9776-46695659A0CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74AEE082-C9D7-44C0-9776-46695659A0CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74AEE082-C9D7-44C0-9776-46695659A0CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74AEE082-C9D7-44C0-9776-46695659A0CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AC9DE20-4BBE-4D03-BCC7-E29FB4882132}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AC9DE20-4BBE-4D03-BCC7-E29FB4882132}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AC9DE20-4BBE-4D03-BCC7-E29FB4882132}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AC9DE20-4BBE-4D03-BCC7-E29FB4882132}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18202A0F-467F-4B37-ABC1-5877B211E5CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18202A0F-467F-4B37-ABC1-5877B211E5CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18202A0F-467F-4B37-ABC1-5877B211E5CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18202A0F-467F-4B37-ABC1-5877B211E5CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93CCFDA0-4B5F-4616-A028-12C2D35FE8DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93CCFDA0-4B5F-4616-A028-12C2D35FE8DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93CCFDA0-4B5F-4616-A028-12C2D35FE8DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93CCFDA0-4B5F-4616-A028-12C2D35FE8DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7466547-61B3-40F9-8F20-5C131E7415B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7466547-61B3-40F9-8F20-5C131E7415B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7466547-61B3-40F9-8F20-5C131E7415B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7466547-61B3-40F9-8F20-5C131E7415B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{776D7D16-E099-47F5-A71C-439B5AF28E47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{776D7D16-E099-47F5-A71C-439B5AF28E47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{776D7D16-E099-47F5-A71C-439B5AF28E47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{776D7D16-E099-47F5-A71C-439B5AF28E47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2812EDD2-AB40-477B-9175-F8A2A77F69AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2812EDD2-AB40-477B-9175-F8A2A77F69AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2812EDD2-AB40-477B-9175-F8A2A77F69AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2812EDD2-AB40-477B-9175-F8A2A77F69AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{713A7C03-CE75-4134-ACE1-940D41228EEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{713A7C03-CE75-4134-ACE1-940D41228EEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{713A7C03-CE75-4134-ACE1-940D41228EEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{713A7C03-CE75-4134-ACE1-940D41228EEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BBED20D-27E6-4C62-9290-9891DC2E78D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BBED20D-27E6-4C62-9290-9891DC2E78D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BBED20D-27E6-4C62-9290-9891DC2E78D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BBED20D-27E6-4C62-9290-9891DC2E78D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72696868-DF59-46F2-946A-6B3429805ED8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72696868-DF59-46F2-946A-6B3429805ED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72696868-DF59-46F2-946A-6B3429805ED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72696868-DF59-46F2-946A-6B3429805ED8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F611F224-1F84-4E2E-B523-12070445E08B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F611F224-1F84-4E2E-B523-12070445E08B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F611F224-1F84-4E2E-B523-12070445E08B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F611F224-1F84-4E2E-B523-12070445E08B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D006D673-EC33-4C2B-990E-49E39B1C160D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D006D673-EC33-4C2B-990E-49E39B1C160D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D006D673-EC33-4C2B-990E-49E39B1C160D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D006D673-EC33-4C2B-990E-49E39B1C160D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{713A7C03-CE75-4134-ACE1-940D41228EEC} = {9941FA78-8346-405C-BB41-E2DB09F51074}
+		{1BBED20D-27E6-4C62-9290-9891DC2E78D5} = {9941FA78-8346-405C-BB41-E2DB09F51074}
+		{72696868-DF59-46F2-946A-6B3429805ED8} = {9941FA78-8346-405C-BB41-E2DB09F51074}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {09CD8DA1-889B-44D4-B0CB-3F28768ED9F2}
+	EndGlobalSection
+EndGlobal

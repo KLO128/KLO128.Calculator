@@ -1,0 +1,15 @@
+﻿<div class="navbar container pt-0 pb-0">
+  <button class="navbar-toggler d-inline-block d-md-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu" aria-controls="navbarSupportedContent"
+          aria-expanded="false" aria-label="Toggle navigation">
+    <span class="material-icons lead standalone">menu</span>
+  </button>
+  <nav class="navbar-expand-sm navbar-toggleable-sm navbar-dark pb-0 pt-0 justify-content-xs-end">
+    <div id="mainMenu" class="navbar collapse d-md-inline-block justify-self-xs-start justify-self-md-end">
+      <ul class="navbar-nav bg-transparent justify-content-start justify-content-md-end">
+        <menu-item *ngFor='let link of menuLinks' [title]='link.title' [icon]='link.icon' [url]='link.url' (notifyClick)='onNotify(link)' [urlNotifier]='activeUrl'></menu-item>
+        <li role="separator" class="separator-vertical"></li>
+        <menu-lang-dropdown></menu-lang-dropdown>
+      </ul>
+    </div>
+  </nav>
+</div>

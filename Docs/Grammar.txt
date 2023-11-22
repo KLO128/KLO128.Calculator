@@ -1,0 +1,30 @@
+﻿
+Start -> expression;
+
+expression -> bracketExpression | logicalOrExpression;
+
+bracketExpression -> '(' expression ')' (logicalOrAppendix | logicalAndAppendix | comparisonAppendix | addAppendix | multipleAppendix | powerAppendix)*
+
+logicalOrExpression -> logicalAndExpression logicalOrAppendix*;
+
+logicalAndExpression -> comparisonExpression comparisonAppendix*;
+
+comparisonExpression -> addExpression addAppendix*;
+
+addExpression -> multipleExpression multipleAppendix*;
+
+multipleExpression -> powerExpression powerAppendix*;
+
+powerExpression -> 'NUMBER' powerAppendix*;
+
+logicalOrAppendix -> 'OR' (logicalOrExpression | bracketExpression);
+
+logicalAndAppendix -> 'AND' (logicalAndExpression | bracketExpression);
+
+comparisonAppendix -> 'COMPARISON' (comparisonExpression | bracketExpression);
+
+addAppendix -> 'ADD' (addExpression | bracketExpression);
+
+multipleAppendix -> 'MULTIPLE' (multipleExpression | bracketExpression);
+
+powerAppendix -> 'POWER' ('NUMBER' | bracketExpression);

@@ -1,0 +1,6 @@
+﻿EntitiesFromEFCore.json not found => all Repositories will be generated as Aggregate Root Repository!
+
+CalcEntry -> D3CalcEntryRepository : D3AggRootRepository, ICalcEntryRepository
+CalcHistory -> D3CalcHistoryRepository : D3AggRootRepository, ICalcHistoryRepository
+// Repositories generated successfully!
+

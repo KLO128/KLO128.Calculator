@@ -1,0 +1,2 @@
+﻿
+dotnet ef dbcontext scaffold "Data Source=..\Docs\Database.sqlite;" Microsoft.EntityFrameworkCore.Sqlite --project KLO128.Calculator.Infra.EFCore.SQLite.Gen -o ../KLO128.Calculator.Infra.EFCore.SQLite/Db --namespace KLO128.Calculator.Infra.EFCore.SQLite.Db -f

@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.25" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="EntitiesFromEFCore-SQLiteFix.tt">
+      <LastGenOutput>EntitiesFromEFCore-SQLiteFix.txt</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="EntitiesFromEFCore.tt">
+      <LastGenOutput>EntitiesFromEFCore.txt</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="EntitiesFromEFCore.txt">
+      <DependentUpon>EntitiesFromEFCore.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </None>
+    <None Update="Repositories-Ifaces.tt">
+      <LastGenOutput>Repositories-Ifaces.txt</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Repositories-Ifaces.txt">
+      <DependentUpon>Repositories-Ifaces.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </None>
+    <None Update="Repositories-Impl.tt">
+      <LastGenOutput>Repositories-Impl.txt</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Repositories-Impl.txt">
+      <DependentUpon>Repositories-Impl.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </None>
+  </ItemGroup>
+
+</Project>

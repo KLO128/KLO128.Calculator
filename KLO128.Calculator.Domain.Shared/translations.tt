@@ -1,0 +1,115 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly Name="EnvDTE.dll" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.Xml.Linq" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Xml.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="EnvDTE" #>
+<#@ output extension=".json" #>
+
+<# 
+ var destinyDir = Path.GetDirectoryName(Host.TemplateFile);
+ var files = Directory.GetFiles(destinyDir);
+ var langJsons = new List<string>();
+
+ var json = @"
+ {{
+ {0}
+ }}";
+
+ var langJson = @"
+ ""{0}"": {{
+{1}
+  }}";
+
+  var sb = new StringBuilder();
+
+ foreach (var file in files)
+ {
+	var fileName = Path.GetFileName(file);
+	if (!fileName.StartsWith("Translations.") && !fileName.EndsWith(".resx"))
+	{
+		continue;
+	}
+
+	foreach (var lang in Langs)
+	{
+		if (fileName.Contains(lang) || fileName == "Translations.resx" && lang == "en-US")
+		{
+			//var messagesParts = File.ReadAllText(file).Split(new string[] {"public static string "}, StringSplitOptions.None);
+
+			//for (int i = 0; i < messagesParts.Length; i++)
+			//{
+			//	var keyValue = ParseMessage(messagesParts, i);
+			//	if (keyValue == null)
+			//	{
+			//		continue;
+			//	}
+
+			//	if (i != 0) {
+			//		sb.AppendLine(",");
+			//	}
+
+			//	sb.Append($"\"{keyValue?.Key}\": \"{keyValue?.Value}\"");
+			//}
+
+			var xDoc = XDocument.Load("file:///" + file);
+			var elements = xDoc.Root.Elements("data").ToList();
+
+			for (var i = 0; i < elements.Count; i++)
+			{
+				var element = elements[i];
+				var key = element.Attribute("name").Value;
+				var val = element.Elements("value").FirstOrDefault()?.Value;
+
+				if (i != 0) {
+					sb.AppendLine(",");
+				}
+
+				sb.Append($"\"{key}\": \"{val}\"");
+			}
+
+			langJsons.Add(string.Format(langJson, lang, sb.ToString()));
+			sb.Clear();
+		}
+	}
+ }
+
+ Write(string.Format(json, string.Join(",\r\n", langJsons)));
+
+#>
+
+<#+
+
+public string[] Langs = new string [] { "en-US", "cs-CZ" };
+
+// all possible comments in all languages used...
+ public string[] CommentsOfTrans = new string [] { "Vyhledá lokalizovaný řetězec podobný " };
+
+ private KeyValuePair<string,string>? ParseMessage(string[] messagesSplit, int i)
+ {
+	var message = messagesSplit.ElementAtOrDefault(i + 1);
+
+	var msgPart = message?.Split(new string [] {"<summary>"}, StringSplitOptions.None).LastOrDefault();
+
+	if (msgPart != null)
+	{
+		msgPart = msgPart.Split(CommentsOfTrans, StringSplitOptions.None).LastOrDefault();
+
+		if (msgPart != null)
+		{
+			msgPart = msgPart.Split(new string [] {"/// </summary>"}, StringSplitOptions.None).First().Trim().Replace('"', '\'');
+
+			msgPart = msgPart.Substring(0, msgPart.Length - 1);
+
+			return new KeyValuePair<string, string>(message.Split(new char [] {' '}, StringSplitOptions.RemoveEmptyEntries).First().Trim(), msgPart);
+		}
+	}
+
+	return null;
+ }
+#>

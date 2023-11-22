@@ -1,0 +1,22 @@
+﻿EntitiesFromEFCore.json not found => all navigation properties has been persisted! Please place it in the same directory as this template or specify entitiesJsonPath!
+
+CalcEntry
+CalcHistory
+Props:
+step in:> CalcEntry.CalcEntryId
+step in:> CalcEntry.CalcHistoryId
+step in:> CalcEntry.Expression
+step in:> CalcEntry.Result
+step in:> CalcEntry.ErrorCode
+step in:> CalcEntry.ErrorArgs
+step in:> CalcEntry.CreatedDate
+step in:> CalcEntry.CalcHistory
+step in:> CalcHistory.CalcHistoryId
+step in:> CalcHistory.Guid
+step in:> CalcHistory.AccessToken
+step in:> CalcHistory.NameToDisplay
+step in:> CalcHistory.CreatedDate
+step in:> CalcHistory.UpdatedDate
+step in:> CalcHistory.CalcEntries -> As Collection
+//Entities generated successfully!
+

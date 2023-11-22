@@ -1,0 +1,89 @@
+﻿<div class="mx-auto container-fluid d-md-flex" (keydown)='onKeyPress($event)' tabIndex="0">
+  <div class="width-350 sub-container mx-auto col-xs-12 col-sm-12 col-md-6 d-md-flex align-content-md-end">
+    <div class="col">
+      <div class="row col-12">
+        <div [class]='invalidModel.length > 0 ? "text-danger" : "text-danger d-none"'>
+          <ul>
+            <li *ngFor="let item of invalidModel">{{item}}</li>
+          </ul>
+        </div>
+        <div [class]='computeError ? "text-danger" : "d-none"'>{{errorMessage || invalidModel[0]}}</div>
+        <h2 id="result" [class]='computeError ? "text-danger" : ""'>{{resultState | homeViewState:'result' | resultText}}</h2>
+        <expression-entry type="text" [charPressed]='charPressed' (expressionChange)="onExpressionChange($event)" [overwrite]='overwrite'></expression-entry>
+      </div>
+      <div class="button-container col-12 row">
+        <button class="btn btn-secondary col" data-char="1" (mousedown)='pressChar($event)'>1</button>
+        <button class="btn btn-secondary col" data-char="2" (mousedown)='pressChar($event)'>2</button>
+        <button class="btn btn-secondary col" data-char="3" (mousedown)='pressChar($event)'>3</button>
+        <button class="btn btn-secondary col-2" data-char="+" (mousedown)='pressChar($event)'>+</button>
+      </div>
+      <div class="button-container col-12 row">
+        <button class="btn btn-secondary col" data-char="4" (mousedown)='pressChar($event)'>4</button>
+        <button class="btn btn-secondary col" data-char="5" (mousedown)='pressChar($event)'>5</button>
+        <button class="btn btn-secondary col" data-char="6" (mousedown)='pressChar($event)'>6</button>
+        <button class="btn btn-secondary col-2" data-char="-" (mousedown)='pressChar($event)'>-</button>
+      </div>
+      <div class="button-container col-12 row">
+        <button class="btn btn-secondary col" data-char="7" (mousedown)='pressChar($event)'>7</button>
+        <button class="btn btn-secondary col" data-char="8" (mousedown)='pressChar($event)'>8</button>
+        <button class="btn btn-secondary col" data-char="9" (mousedown)='pressChar($event)'>9</button>
+        <button class="btn btn-secondary col-2" data-char="*" (mousedown)='pressChar($event)'>*</button>
+      </div>
+      <div class="button-container col-12 row">
+        <button class="btn btn-secondary col" data-char='.' (mousedown)='pressChar($event)'>{{sharedService.getTranslation('decimalPoint')}}</button>
+        <button class="btn btn-secondary col" data-char="0" (mousedown)='pressChar($event)'>0</button>
+        <button class="btn btn-warning col" data-char="C" (mousedown)='pressChar($event)'>C</button>
+        <button class="btn btn-secondary col-2" data-char="/" (mousedown)='pressChar($event)'>/</button>
+      </div>
+      <div class="button-container col-12 row">
+        <button class="btn btn-secondary col" (mousedown)='showHideAdvanced()'><span class="material-icons" *ngIf='advanced'>more_vert</span><span class="material-icons" *ngIf='!advanced'>more_horiz</span></button>
+        <button class="btn btn-secondary col-6" data-char=" " (mousedown)='pressChar($event)'><span class="material-icons">space_bar</span></button>
+        <button class="btn btn-secondary col" data-char="del" (mousedown)='pressChar($event)'><span class="material-icons">backspace</span></button>
+      </div>
+      <div class="button-container col-12 row">
+        <button id="btnCompute" class="btn btn-primary col-8" (mousedown)='compute()'>{{sharedService.getTranslation('Compute')}}</button>
+        <button class="btn btn-secondary col" (mousedown)='prettify()'>{{sharedService.getTranslation('Prettify')}}</button>
+      </div>
+      <div class="clearfix"></div>
+      <div id="advanced-container col-12" [class]='advanced ? "" : "d-none"'>
+        <h6 class="mt-2">{{sharedService.getTranslation('AdvancedOperators')}}</h6>
+        <div class="button-container col-12 row">
+          <button class="btn btn-secondary col" data-char="|" (mousedown)='pressChar($event)'>|</button>
+          <button class="btn btn-secondary col" data-char="&" (mousedown)='pressChar($event)'>&</button>
+          <button class="btn btn-secondary col" data-char="(" (mousedown)='pressChar($event)'>(</button>
+          <button class="btn btn-secondary col" data-char=")" (mousedown)='pressChar($event)'>)</button>
+        </div>
+        <div class="button-container col-12 row">
+          <button class="btn btn-secondary col" data-char="<" (mousedown)='pressChar($event)'>&lt;</button>
+          <button class="btn btn-secondary col" data-char=">" (mousedown)='pressChar($event)'>&gt;</button>
+          <button class="btn btn-secondary col" data-char="<=" (mousedown)='pressChar($event)'>&lt;=</button>
+          <button class="btn btn-secondary col" data-char=">=" (mousedown)='pressChar($event)'>&gt;=</button>
+          <button class="btn btn-secondary col-3 row-5" data-char="=" (mousedown)='pressChar($event)'>=</button>
+        </div>
+        <div class="button-container col-12 row">
+          <button class="btn btn-secondary col" data-char="%" (mousedown)='pressChar($event)'>%</button>
+          <button class="btn btn-secondary col" data-char="_" (mousedown)='pressChar($event)'>x<span class="material-icons">check</span></button>
+          <button class="btn btn-secondary col-3" data-char="^" (mousedown)='pressChar($event)'>x^y</button>
+        </div>
+      </div>
+      <div class="clearfix"></div>
+      <div class="mt-2 col-12">
+        <input type="checkbox" class="form-check" [checked]='useSeparatorsState | homeViewState:"useSeparators"' (change)='updateUseSeparators()' /><label class="form-label">{{sharedService.getTranslation("UseThousandSeparators")}}</label>
+        <div class="clearfix"></div>
+        <input type="checkbox" class="form-check" [checked]='resultAsIntegerState | homeViewState:"resultAsInteger"' (change)='displayIntegers()' /><label class="form-label">{{sharedService.getTranslation("msgResultAsInteger")}}</label>
+</div>
+    </div>
+  </div>
+  <div class="width-350 sub-container mx-auto col-xs-12 col-sm-12 col-md-6 d-md-flex align-content-md-start">
+    <div class="col">
+      <h2 class="float-start">{{sharedService.getTranslation('History')}}</h2>
+      <div class="clearfix"></div>
+      <div [class]='noHistory ? "lead" : "d-none"'>{{sharedService.getTranslation('NoHistory')}}</div>
+      <div [class]='loadingState ? "lead" : "d-none"'>{{_loadingText}}</div>
+      <div [class]='onLoadError ? "lead" : "d-none"'>{{sharedService.getTranslation('msgServerNotResponding')}}</div>
+      <div id="history" class="lead">
+        <p *ngFor="let item of historyResultsState">{{item}}</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,107 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ output extension=".txt" #>
+
+<#
+	var targetProject = Host.ResolvePath("../KLO128.Calculator.Domain/Models/Entities/");
+	var idsAsInt64 = false;
+
+	var files = Directory.GetFiles(targetProject);
+	var console = new StringBuilder();
+
+	foreach	(var file in files)
+	{
+		var lines = File.ReadAllLines(file).ToList();
+
+		console.AppendLine($"step in:> {Path.GetFileName(file)}");
+
+		for (int i = 0; i < lines.Count; i++)
+		{
+			var line = lines[i];
+
+			if (line.Contains("Amount") || idsAsInt64 && line.ToLower().Contains("id { get; set; }"))
+			{
+				continue;
+			}
+
+			if (line.Contains(" long"))
+			{
+				lines[i] = line.Replace(" long", " int"); // consider if you need longs in the app.
+				console.AppendLine($"\tlong -> int at: {line}");
+			}
+
+			if (line.Contains("byte[]"))
+			{
+				lines[i] = line.Replace(" byte[]", " bool");
+				console.AppendLine($"\tbyte[] -> bool at: {line}");
+			}
+
+			if (line.Contains("string Date") || line.Contains("string? Date") || line.Contains("Date { get; set; }") || line.Contains("LastChange { get; set; }") || line.Contains("Time { get; set; }"))
+			{
+				var typeName = !line.Contains("DateTime { get; set; }") && line.Contains("Time { get; set; }") ? "TimeSpan" : "DateTime";
+				var propName = new StringBuilder();
+				var propStrCut = line.Substring("        public string".Length);
+				var nullable = propStrCut[0] == '?';
+
+				for (int j = 0; j < propStrCut.Length; j++)
+				{
+					var ch = propStrCut[j];
+					if (ch == '{')
+					{
+						break;
+					}
+					else if (char.IsLetterOrDigit(ch))
+					{
+						propName.Append(ch);
+					}
+				}
+
+				var propNameStr = propName.ToString();
+
+				if (line.Contains(" string"))
+				{
+					line = line.Replace(" string", $" {typeName}").Replace(" = null!;", string.Empty);
+					console.AppendLine($"\tstring *(Date|Time) -> {typeName} *(Date|Time) at: {line}");
+
+					lines[i] = line;
+				}
+			}
+		}
+
+		SaveOutput(file, string.Join("\r\n", lines));
+	}
+
+	if (genSuccess)
+    {
+		Write(console.ToString());
+        WriteLine($"//Entities fixed successfully!");
+    }
+    else
+    {
+        WriteLine("//No Entity was fixed... Uncomment: SaveOutput()");
+    }
+#>
+
+<#+
+
+public static bool genSuccess = false;
+
+private void SaveOutput(string outputFilePath, string text)
+{
+	using (var fs = new FileStream(outputFilePath, FileMode.OpenOrCreate))
+	{
+		fs.SetLength(0);
+		var bytes = Encoding.UTF8.GetBytes(text);
+		var awaiter = fs.WriteAsync(bytes, 0, bytes.Length);
+		awaiter.Wait();
+	}
+
+	this.GenerationEnvironment.Remove(0, this.GenerationEnvironment.Length);
+
+    genSuccess = true;
+}
+#>

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="KLO128.D3ORM.Common.Abstract" Version="1.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="7.0.13" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KLO128.Calculator.Application.Contracts\KLO128.Calculator.Application.Contracts.csproj" />
+    <ProjectReference Include="..\KLO128.Calculator.Domain\KLO128.Calculator.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
